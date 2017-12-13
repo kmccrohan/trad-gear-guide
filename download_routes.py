@@ -20,7 +20,7 @@ def connect_db():
     c.execute('''DROP TABLE IF EXISTS routes''')
     c.execute('''CREATE TABLE routes (
              id INT NOT NULL,
-             html VARCHAR NOT NULL,
+             html VARCHAR,
              protection VARCHAR NOT NULL,
              url VARCHAR(200) NOT NULL,
              PRIMARY KEY (id))''')
@@ -29,10 +29,11 @@ def connect_db():
 def close_db():
     conn.close()
 
-def insert_route(id, html, protection, url):
+def insert_route(html, protection, url):
     c = conn.cursor()
-    c.execute('''INSERT INTO routes
-                VALUES (?, ?, ?, ?)''', [id, html, protection, url])
+    route_id = url.split("route/")[1][0:9]
+    c.execute('''INSERT INTO routes (id, protection, url)
+                VALUES (?, ?, ?)''', [route_id, protection, url])
     conn.commit()
 
 def main():
@@ -41,7 +42,7 @@ def main():
     pages = int(n_routes / PAGE_SIZE) + 1
     print("Querying data...")
 
-    id = 0
+    cnt = 0
     for i in range(1, pages+1):
         html = None
         try:
@@ -58,13 +59,15 @@ def main():
             sections = html(".col-xs-12")("div.m-t-2")
             pro = getProtection(sections)
             if pro is not None:
-                insert_route(id, str(html), pro, url)
-                id = id + 1
-                if id > n_routes:
+                insert_route(str(html), pro, url)
+                cnt = cnt + 1
+                if cnt > n_routes:
                     break
 
+        print("%d / %d routes downloaded." % (cnt - 1, n_routes))
+
     close_db()
-    print("Inserted %d routes." % id - 1)
+    print("Inserted %d routes total." % (cnt - 1))
 
 if __name__ == "__main__":
     main()
