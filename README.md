@@ -14,7 +14,7 @@ pip3 install sqlite3
 Each time you run this script, the database is cleared (to avoid duplicate routes).
 
 
-#Usage 
+# Usage 
 To calculate common n-grams use the following.
 
 ```
